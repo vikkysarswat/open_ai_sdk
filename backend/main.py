@@ -12,21 +12,45 @@ NEWS_API_KEY = os.getenv("NEWS_API_KEY", "your_default_key")
 def home():
     return {"status": "✅ News MCP server running"}
 
+@app.get("/mcp/manifest")
+def manifest():
+    """MCP manifest so ChatGPT connector knows about available tools."""
+    return {
+        "name": "news_mcp_server",
+        "version": "1.0.0",
+        "description": "Fetches latest news articles for ChatGPT PlayCards.",
+        "tools": [
+            {
+                "name": "news",
+                "description": "Get top headlines using News API.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "country": {"type": "string", "default": "in"},
+                        "limit": {"type": "integer", "default": 5}
+                    },
+                    "required": []
+                },
+                "output_schema": {"type": "array", "items": {"type": "object"}}
+            }
+        ]
+    }
+
 @app.get("/tools/news", response_model=List[Dict])
-def get_news():
-    """Return a list of news articles"""
-    url = f"https://newsapi.org/v2/top-headlines?country=in&apiKey={NEWS_API_KEY}"
+def get_news(country: str = "in", limit: int = 5):
+    """Return a list of news articles."""
+    url = f"https://newsapi.org/v2/top-headlines?country={country}&apiKey={NEWS_API_KEY}"
     resp = requests.get(url)
     data = resp.json()
 
     articles = data.get("articles", [])
     cards = []
-    for art in articles[:6]:
+    for art in articles[:limit]:
         cards.append({
-            "title": art["title"],
+            "title": art.get("title"),
             "description": art.get("description", ""),
             "image": art.get("urlToImage"),
-            "url": art["url"],
+            "url": art.get("url"),
             "publishedAt": art.get("publishedAt", "")[:10],
             "source": art.get("source", {}).get("name", "")
         })
