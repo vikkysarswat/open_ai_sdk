@@ -1,0 +1,10 @@
+{
+  "tools": [
+    {
+      "id": "news",
+      "type": "http",
+      "url": "https://your-render-app.onrender.com/tools/news",
+      "display_name": "News Fetcher"
+    }
+  ]
+}
